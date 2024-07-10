@@ -1,0 +1,91 @@
+# This workflow will build and test a .NET project
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-net
+
+name: Continous integration pipeline
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  gitVersion:
+    runs-on: ubuntu-latest
+    outputs:
+      branchName: ${{ steps.gitversion.outputs.branchName }} # To use an output in another job, you have to map it to a job output.
+      semVer: ${{ steps.gitversion.outputs.semVer }}
+      sha: ${{ steps.gitversion.outputs.sha }}
+      nugetVersion: ${{ steps.gitversion.outputs.nuGetVersion }}
+      assemblySemFileVer: ${{ steps.gitversion.outputs.assemblySemFileVer }}
+      informationalVersion: ${{ steps.gitversion.outputs.informationalVersion }}
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    - name: Install GitVersion
+      uses: gittools/actions/gitversion/setup@v1.1.1
+      with:
+        versionSpec: '5.x'
+        preferLatestVersion: true
+    - name: Determine Version
+      id:   gitversion # id to later be referenced
+      uses: gittools/actions/gitversion/execute@v1.1.1
+      with:
+        additionalArguments: '/updateprojectfiles'
+        useConfigFile: true
+        configFilePath: '.github/GitVersion.yaml'
+
+  buildAndTest:
+    needs: [gitVersion]
+    runs-on: ubuntu-latest
+    permissions:
+      checks: write
+      pull-requests: write
+      contents: read
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Setup .NET
+      id: setupDotnet
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 8.0.x
+    - name: Build
+      id: build
+      run: dotnet build
+    - name: Test
+      run: dotnet test --logger "trx" --no-build --verbosity normal /p:AssemblyVersion=${{ needs.gitVersion.outputs.assemblySemFileVer }} /p:FileVersion=${{ needs.gitVersion.outputs.assemblySemFileVer }} /p:InformationalVersion=${{ needs.gitVersion.outputs.informationalVersion }}
+    - name: Publish Test Results
+      uses: EnricoMi/publish-unit-test-result-action@v2
+      if: ${{steps.build.outcome == 'success'}}
+      with:
+        files: |
+          tests/**/TestResults/*.xml
+          tests/**/TestResults/*.trx
+          tests/**/TestResults/*.json
+
+  tagAndRelease:
+    needs: [gitVersion, buildAndTest]
+    runs-on: ubuntu-latest
+    if: contains(needs.gitVersion.outputs.branchName, 'main')
+    permissions:
+      contents: write
+      packages: write
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Tag on main
+      run: |
+          git config --global user.name "Github actions: gitversion"
+          git config --global user.email "gitversion@github-actions.com"
+          git tag -a "${{ needs.gitVersion.outputs.semVer}}" -m "Version ${{ needs.gitVersion.outputs.semVer}}"
+          git push --tags
+    - name: Pack Nuget
+      run: dotnet pack -c Release -o out ./Yaref92.MAUISTT.sln
+    - name: Release NuGet package
+      run: dotnet nuget push ./out/$(ls ./out) -s https://nuget.pkg.github.com/yaron-E92/index.json -k ${GITHUB_TOKEN}
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
