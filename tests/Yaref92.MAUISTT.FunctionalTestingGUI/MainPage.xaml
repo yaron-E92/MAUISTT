@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewmodel="clr-namespace:Yaref92.MAUISTT.FunctionalTestingGUI.ViewModels"
+             x:DataType="viewmodel:MainViewModel"
+             x:Class="Yaref92.MAUISTT.FunctionalTestingGUI.MainPage">
+
+    <ScrollView>
+        <Grid RowDefinitions="Auto, Auto, Auto, *"
+              ColumnDefinitions="0.3*,0.2*,0.2*,0.3*"
+              Padding="30,0">
+            <Image Grid.Row="0"
+                   Grid.Column="0"
+                   Grid.ColumnSpan="4"
+                   Source="dotnet_bot.png"
+                   HeightRequest="185"
+                   Aspect="AspectFit"
+                   SemanticProperties.Description="dot net bot in a race car number eight" />
+
+            <Label Grid.Row="1"
+                   Grid.Column="0"
+                   Grid.ColumnSpan="4"
+                   Text="Hello, Audio recorder!"
+                   Style="{StaticResource Headline}"
+                   SemanticProperties.HeadingLevel="Level1" />
+
+            <Button Grid.Row="2"
+                    Grid.Column="0"
+                    x:Name="Record"
+                    IsEnabled="{Binding IsNotRecording}"
+                    Text="&#xe91e;"
+                    SemanticProperties.Hint="Start Recording"
+                    Command="{Binding RecordAudioCommand}"
+                    CornerRadius="25"
+                    FontFamily="AudioIconFonts"
+                    FontSize="22"
+                    HorizontalOptions="Center" />
+
+            <Button Grid.Row="2"
+                    Grid.Column="1"
+                    x:Name="Pause"
+                    IsEnabled="{Binding IsNotPaused}"
+                    Text="&#xea1d;" 
+                    SemanticProperties.Hint="Pause Recording"
+                    Command="{Binding PauseRecordingCommand}"
+                    CornerRadius="25"
+                    FontFamily="AudioIconFonts"
+                    FontSize="22"
+                    HorizontalOptions="End" />
+
+            <Button Grid.Row="2"
+                    Grid.Column="2"
+                    x:Name="Resume"
+                    IsEnabled="{Binding IsPaused}"
+                    Text="&#xea1c;" 
+                    SemanticProperties.Hint="Resume Recording"
+                    Command="{Binding ResumeRecordingCommand}"
+                    CornerRadius="25"
+                    FontFamily="AudioIconFonts"
+                    FontSize="22"
+                    HorizontalOptions="Start" />
+
+            <Button Grid.Row="2"
+                    Grid.Column="3"
+                    x:Name="Stop"
+                    IsEnabled="{Binding IsRecording}"
+                    Text="&#xea1e;" 
+                    SemanticProperties.Hint="Stop Recording"
+                    Command="{Binding StopRecordingCommand}"
+                    CornerRadius="25"
+                    FontFamily="AudioIconFonts"
+                    FontSize="22"
+                    HorizontalOptions="Center" />
+
+            <Label Grid.Row="3"
+                   Grid.Column="1"
+                   Grid.ColumnSpan="2"
+                   Text="{Binding CurrentAudioPostion}"
+                   Style="{StaticResource SubHeadline}"
+                   HorizontalOptions="Center"/>
+        </Grid>
+    </ScrollView>
+
+</ContentPage>
