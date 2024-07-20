@@ -25,6 +25,8 @@ public static class MauiProgram
         builder.Services.AddSingleton<IAudioRecorder, Services.Android.AudioRecorder>();
 #elif IOS
         builder.Services.AddSingleton<IAudioRecorder, Services.iOS.AudioRecorder>();
+#elif WINDOWS
+        builder.Services.AddSingleton<IAudioRecorder, Services.Windows.AudioRecorder>();
 #endif
         builder.Services.AddSingleton<MainViewModel>()
             .AddSingleton<MainPage>();

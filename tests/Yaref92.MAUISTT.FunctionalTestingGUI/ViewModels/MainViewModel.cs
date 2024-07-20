@@ -105,4 +105,11 @@ public partial class MainViewModel : ObservableObject
         timer.Stop();
         CurrentAudioPostion = string.Format("{0:mm\\:ss}", TimeSpan.Zero);
     }
+
+#if WINDOWS
+    internal async Task InitializeAudioRecorder()
+    {
+        await (_audioRecorder as Services.Windows.AudioRecorder)?.InitAudioRecorder()!;
+    }
+#endif
 }
