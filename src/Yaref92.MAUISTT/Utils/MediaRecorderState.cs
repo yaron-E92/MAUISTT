@@ -11,8 +11,11 @@ public enum MediaRecorderState
     /// of audio source, format, encoding and output path
     /// </summary>
     Initial = 0,
-    Reset = Initial,
+    /// <summary>
+    /// At this state, only output path needs to be configured
+    /// </summary>
+    Reset,
     Recording,
     Paused,
-    Stopped = Initial,
+    Stopped = Reset,
 }
