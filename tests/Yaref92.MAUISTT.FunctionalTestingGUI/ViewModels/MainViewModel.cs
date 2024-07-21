@@ -109,7 +109,7 @@ public partial class MainViewModel : ObservableObject
 #if WINDOWS
     internal async Task InitializeAudioRecorder()
     {
-        await (_audioRecorder as Services.Windows.AudioRecorder)?.InitAudioRecorder()!;
+        await (_audioRecorder as AudioRecording.Windows.AudioRecorder)?.InitAudioRecorder()!;
     }
 #endif
 }

@@ -9,7 +9,7 @@ using Yaref92.MAUISTT.Utils;
 
 using WinMedia = Windows.Media;
 
-namespace Yaref92.MAUISTT.Services.Windows;
+namespace Yaref92.MAUISTT.AudioRecording.Windows;
 
 public sealed class AudioRecorder : IAudioRecorder, IDisposable
 {

@@ -22,11 +22,11 @@ public static class MauiProgram
         builder.Logging.AddDebug();
 #endif
 #if ANDROID
-        builder.Services.AddSingleton<IAudioRecorder, Services.Android.AudioRecorder>();
+        builder.Services.AddSingleton<IAudioRecorder, AudioRecording.Android.AudioRecorder>();
 #elif IOS
-        builder.Services.AddSingleton<IAudioRecorder, Services.iOS.AudioRecorder>();
+        builder.Services.AddSingleton<IAudioRecorder, AudioRecording.iOS.AudioRecorder>();
 #elif WINDOWS
-        builder.Services.AddSingleton<IAudioRecorder, Services.Windows.AudioRecorder>();
+        builder.Services.AddSingleton<IAudioRecorder, AudioRecording.Windows.AudioRecorder>();
 #endif
         builder.Services.AddSingleton<MainViewModel>()
             .AddSingleton<MainPage>();
