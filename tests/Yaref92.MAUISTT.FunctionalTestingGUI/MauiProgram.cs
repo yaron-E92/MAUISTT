@@ -1,7 +1,14 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using CommunityToolkit.Maui;
+using CommunityToolkit.Maui.Media;
 
+using Microsoft.Extensions.Logging;
+
+using Yaref92.Events.Abstractions;
+using Yaref92.Events;
 using Yaref92.MAUISTT.Abstractions;
 using Yaref92.MAUISTT.FunctionalTestingGUI.ViewModels;
+using Yaref92.MAUISTT.FunctionalTestingGUI.Pages;
+using Yaref92.MAUISTT.SpeechToTextConversion;
 
 namespace Yaref92.MAUISTT.FunctionalTestingGUI;
 public static class MauiProgram
@@ -11,6 +18,7 @@ public static class MauiProgram
         var builder = MauiApp.CreateBuilder();
         builder
             .UseMauiApp<App>()
+            .UseMauiCommunityToolkit()
             .ConfigureFonts(fonts =>
             {
                 fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
@@ -28,8 +36,17 @@ public static class MauiProgram
 #elif WINDOWS
         builder.Services.AddSingleton<IAudioRecorder, AudioRecording.Windows.AudioRecorder>();
 #endif
+        builder.Services.AddSingleton<ISpeechToText>(SpeechToText.Default)
+            .AddSingleton<ISpeechToTextConverter, SpeechToTextConverter>()
+            .AddSingleton<IEventAggregator, EventAggregator>()
+            .AddScoped<ISubscription, Subscription>();
+
         builder.Services.AddSingleton<MainViewModel>()
             .AddSingleton<MainPage>();
+
+        builder.Services.AddSingleton<STTViewModel>()
+            .AddSingleton<STTPage>();
+
         return builder.Build();
     }
 }

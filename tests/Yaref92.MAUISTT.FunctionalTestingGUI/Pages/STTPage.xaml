@@ -2,35 +2,29 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:viewmodel="clr-namespace:Yaref92.MAUISTT.FunctionalTestingGUI.ViewModels"
-             x:DataType="viewmodel:MainViewModel"
-             x:Class="Yaref92.MAUISTT.FunctionalTestingGUI.MainPage">
+             x:DataType="viewmodel:STTViewModel"
+             x:Class="Yaref92.MAUISTT.FunctionalTestingGUI.Pages.STTPage"
+             Title="STTPage">
 
     <ScrollView>
-        <Grid RowDefinitions="Auto, Auto, Auto, *, Auto"
+        <Grid RowDefinitions="Auto, Auto, Auto, Auto, 100, Auto, *"
               ColumnDefinitions="0.3*,0.2*,0.2*,0.3*"
               Padding="30,0">
-            <Image Grid.Row="0"
-                   Grid.Column="0"
-                   Grid.ColumnSpan="4"
-                   Source="dotnet_bot.png"
-                   HeightRequest="185"
-                   Aspect="AspectFit"
-                   SemanticProperties.Description="dot net bot in a race car number eight" />
 
             <Label Grid.Row="1"
                    Grid.Column="0"
                    Grid.ColumnSpan="4"
-                   Text="Hello, Audio recorder!"
+                   Text="STT test"
                    Style="{StaticResource Headline}"
                    SemanticProperties.HeadingLevel="Level1" />
 
             <Button Grid.Row="2"
                     Grid.Column="0"
-                    x:Name="Record"
+                    x:Name="InitiateSTT"
                     IsEnabled="{Binding IsNotRecording}"
                     Text="&#xe91e;"
                     SemanticProperties.Hint="Start Recording"
-                    Command="{Binding RecordAudioCommand}"
+                    Command="{Binding StartListeningCommand}"
                     CornerRadius="25"
                     FontFamily="AudioIconFonts"
                     FontSize="22"
@@ -38,11 +32,11 @@
 
             <Button Grid.Row="2"
                     Grid.Column="1"
-                    x:Name="Pause"
+                    x:Name="PauseSTT"
                     IsEnabled="{Binding IsNotPaused}"
                     Text="&#xea1d;" 
                     SemanticProperties.Hint="Pause Recording"
-                    Command="{Binding PauseRecordingCommand}"
+                    Command="{Binding PauseListeningCommand}"
                     CornerRadius="25"
                     FontFamily="AudioIconFonts"
                     FontSize="22"
@@ -50,11 +44,11 @@
 
             <Button Grid.Row="2"
                     Grid.Column="2"
-                    x:Name="Resume"
+                    x:Name="ResumeSTT"
                     IsEnabled="{Binding IsPaused}"
                     Text="&#xea1c;" 
                     SemanticProperties.Hint="Resume Recording"
-                    Command="{Binding ResumeRecordingCommand}"
+                    Command="{Binding ResumeListeningCommand}"
                     CornerRadius="25"
                     FontFamily="AudioIconFonts"
                     FontSize="22"
@@ -62,11 +56,11 @@
 
             <Button Grid.Row="2"
                     Grid.Column="3"
-                    x:Name="Stop"
+                    x:Name="StopSTT"
                     IsEnabled="{Binding IsRecording}"
                     Text="&#xea1e;" 
                     SemanticProperties.Hint="Stop Recording"
-                    Command="{Binding StopRecordingCommand}"
+                    Command="{Binding StopListeningCommand}"
                     CornerRadius="25"
                     FontFamily="AudioIconFonts"
                     FontSize="22"
@@ -78,14 +72,31 @@
                    Text="{Binding CurrentAudioPostion}"
                    Style="{StaticResource SubHeadline}"
                    HorizontalOptions="Center"/>
-            
-            <Button Grid.Row="4"
-                    Grid.Column="1"
-                    Grid.ColumnSpan="2"
-                    Text="STT"
-                    Command="{Binding GoToSTTCommand}"
-                    HorizontalOptions="Center"/>
+
+            <Label Grid.Row="4"
+                   Grid.Column="0"
+                   Grid.ColumnSpan="4"
+                   BackgroundColor="{StaticResource MidnightBlue}"
+                   TextColor="White"
+                   Text="{Binding OngoingSTTText}"
+                   WidthRequest="500"
+                   HorizontalOptions="Center"/>
+
+            <Entry Grid.Row="5"
+                   Grid.Column="0"
+                   Grid.ColumnSpan="2"
+                   x:Name="Editable"
+                   BackgroundColor="{StaticResource Magenta}"
+                   IsReadOnly="{Binding IsTextReadOnly}"
+                   Text="{Binding EditableSTTText, Mode=OneWay}"
+                   TextChanged="Editable_TextChanged"/>
+
+            <Label Grid.Row="5"
+                   Grid.Column="2"
+                   Grid.ColumnSpan="2"
+                   x:Name="Editable2"
+                   BackgroundColor="{StaticResource Magenta}"
+                   Text="{Binding EditableSTTText}" />
         </Grid>
     </ScrollView>
-
 </ContentPage>
