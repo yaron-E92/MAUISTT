@@ -23,4 +23,10 @@
     <TargetPlatformMinVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.19041.0</TargetPlatformMinVersion>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.2.2" />
+    <PackageReference Include="CommunityToolkit.Maui" Version="9.0.2" />
+    <PackageReference Include="Yaref92.Events" Version="0.2.0" />
+  </ItemGroup>
+
 </Project>
