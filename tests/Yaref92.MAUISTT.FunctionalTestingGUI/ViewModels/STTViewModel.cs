@@ -91,7 +91,7 @@ public partial class STTViewModel : STTViewModelBase, IEventSubscriber<UpdatedSp
 
     private void UpdateEditable(string editable)
     {
-        _editableStringBuilder.Append(editable);
+        _editableStringBuilder.AppendLine(editable);
         EditableSTTText = _editableStringBuilder.ToString();
     }
 

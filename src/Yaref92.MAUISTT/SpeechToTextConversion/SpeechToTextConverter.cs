@@ -1,7 +1,6 @@
 ﻿using CommunityToolkit.Maui.Media;
 
 using Yaref92.MAUISTT.Abstractions;
-using System.Text;
 using Yaref92.MAUISTT.Utils;
 using Yaref92.Events.Abstractions;
 using System.Globalization;
@@ -13,9 +12,9 @@ public class SpeechToTextConverter : ISpeechToTextConverter
     public MediaRecorderState State { get; private set; }
     private readonly IEventAggregator _eventAggregator;
 
-    private readonly StringBuilder _interruptedSpeechRecognitionResult = new();
-    private readonly StringBuilder _ongoingSpeechRecognitionResult = new();
     private readonly ISpeechToText _speechToText;
+
+    private SpeechRecognitionStepResults _speechRecognitionStepResults;
 
     public SpeechToTextConverter(ISpeechToText speechToText, IEventAggregator eventAggregator)
     {
@@ -23,58 +22,19 @@ public class SpeechToTextConverter : ISpeechToTextConverter
         State = MediaRecorderState.Initial;
 
         _speechToText = speechToText;
-        _speechToText.RecognitionResultUpdated += OnRecognitionTextUpdated;
-        _speechToText.RecognitionResultCompleted += OnRecognitionTextCompleted;
 
-        _eventAggregator.RegisterEventType<UpdatedSpeechToText>();
-        _eventAggregator.RegisterEventType<SpeechToTextPausedAutomatically>();
+        _speechRecognitionStepResults = new(_eventAggregator);
         State = MediaRecorderState.Reset;
-    }
-
-    /// <summary>
-    /// This method is necessary for the situation when the speech to text stopped listening but didn't pick up anything or
-    /// didn't trigger <see cref="OnRecognitionTextCompleted"/>
-    /// </summary>
-    /// <param name="sender"></param>
-    /// <param name="e"></param>
-    private void SpeechToTextConverter_EndOfSpeech(object? sender, EventArgs e)
-    {
-        if (State == MediaRecorderState.Recording)
-        {
-            string recognitionResult = _ongoingSpeechRecognitionResult.ToString();
-            if (string.IsNullOrEmpty(recognitionResult))
-            {
-                State = MediaRecorderState.Stopped;
-            }
-            else
-            {
-                OnRecognitionTextCompleted(this, new SpeechToTextRecognitionResultCompletedEventArgs(recognitionResult));
-            }
-        }
     }
 
     private void OnRecognitionTextUpdated(object? sender, SpeechToTextRecognitionResultUpdatedEventArgs args)
     {
-        _ongoingSpeechRecognitionResult.Append(args.RecognitionResult);
-        _eventAggregator.PublishEvent(new UpdatedSpeechToText()
-        {
-            Text = _ongoingSpeechRecognitionResult.ToString()
-        });
+        _speechRecognitionStepResults.AppendOngoing(args.RecognitionResult);
     }
 
     private void OnRecognitionTextCompleted(object? sender, SpeechToTextRecognitionResultCompletedEventArgs args)
     {
-        _interruptedSpeechRecognitionResult.Clear().Append(args.RecognitionResult);
-        _ongoingSpeechRecognitionResult.Clear();
-
-        if (State == MediaRecorderState.Recording)
-        {
-            _eventAggregator.PublishEvent(new SpeechToTextPausedAutomatically()
-            {
-                Text = _interruptedSpeechRecognitionResult.ToString()
-            });
-            State = MediaRecorderState.Paused;
-        }
+        _speechRecognitionStepResults.CompleteRecognition();
     }
 
     public async Task StartListenAsync()
@@ -85,6 +45,7 @@ public class SpeechToTextConverter : ISpeechToTextConverter
         }
         if (State is MediaRecorderState.Reset or MediaRecorderState.Stopped)
         {
+            await AddEventHandling();
             await _speechToText.StartListenAsync(CultureInfo.CurrentCulture, new CancellationToken());
             State = MediaRecorderState.Recording;
         }
@@ -94,33 +55,50 @@ public class SpeechToTextConverter : ISpeechToTextConverter
         }
     }
 
-    public async Task<string> PauseListenAsync()
+    private async Task AddEventHandling()
     {
-        string result = await InterruptListening();
-        State = MediaRecorderState.Paused;
-
-        return result;
+        await Task.Run(() =>
+        {
+            _speechToText.RecognitionResultUpdated += OnRecognitionTextUpdated;
+            _speechToText.RecognitionResultCompleted += OnRecognitionTextCompleted;
+        });
     }
 
-    private async Task<string> InterruptListening()
+    public async Task<string> PauseListenAsync()
     {
-        if (State is not MediaRecorderState.Recording)
+        await InterruptListening();
+        _speechRecognitionStepResults.CompleteRecognition();
+        State = MediaRecorderState.Paused;
+
+        string stoppedRecognitionText = _speechRecognitionStepResults.StoppedRecognitionText;
+        _speechRecognitionStepResults.Clear();
+        return stoppedRecognitionText;
+    }
+
+    private async Task InterruptListening()
+    {
+        if (State is not (MediaRecorderState.Recording or MediaRecorderState.Paused))
         {
-            return string.Empty;
+            return;
         }
 
-        await _speechToText.StopListenAsync();
-        string interruptedString = _ongoingSpeechRecognitionResult.ToString();
-        _ongoingSpeechRecognitionResult.Clear();
-        return interruptedString;
+        await RemoveEventHandling();
+    }
+
+    private async Task RemoveEventHandling()
+    {
+        await Task.Run(() =>
+        {
+            _speechToText.RecognitionResultUpdated -= OnRecognitionTextUpdated;
+            _speechToText.RecognitionResultCompleted -= OnRecognitionTextCompleted;
+        });
     }
 
     public async Task ResumeListenAsync()
     {
         if (State is MediaRecorderState.Paused)
         {
-            _ongoingSpeechRecognitionResult.Append(' ');
-            await _speechToText.StartListenAsync(CultureInfo.CurrentCulture, new CancellationToken());
+            await AddEventHandling();
             State = MediaRecorderState.Recording;
         }
         else
@@ -131,17 +109,20 @@ public class SpeechToTextConverter : ISpeechToTextConverter
 
     public async Task<string> StopListenAsync()
     {
-        string result = await InterruptListening();
-        _interruptedSpeechRecognitionResult.Clear();
+        await _speechToText.StopListenAsync();
+        await InterruptListening();
+        _speechRecognitionStepResults.CompleteRecognition();
         State = MediaRecorderState.Stopped;
 
-        return result;
+        string stoppedRecognitionText = _speechRecognitionStepResults.StoppedRecognitionText;
+        _speechRecognitionStepResults.Clear();
+        return stoppedRecognitionText;
     }
 
     public void ResetConverter()
     {
-        _ongoingSpeechRecognitionResult.Clear();
-        _interruptedSpeechRecognitionResult.Clear();
+        RemoveEventHandling();
+        _speechRecognitionStepResults.Clear();
         State = MediaRecorderState.Reset;
     }
 }
