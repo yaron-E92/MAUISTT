@@ -4,12 +4,14 @@ using System.Text;
 
 using AVFoundation;
 
+using Foundation;
+
 using Yaref92.MAUISTT.Abstractions;
 using Yaref92.MAUISTT.Utils;
 
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
-namespace Yaref92.MAUISTT.Services.iOS;
+namespace Yaref92.MAUISTT.AudioRecording.iOS;
 
 public sealed class AudioRecorder : IAudioRecorder
 {

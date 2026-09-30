@@ -3,8 +3,9 @@ using Yaref92.MAUISTT.Abstractions;
 
 using Android.Media;
 using Yaref92.MAUISTT.Utils;
+using AndroidApp = Android.App;
 
-namespace Yaref92.MAUISTT.Services.Android;
+namespace Yaref92.MAUISTT.AudioRecording.Android;
 
 public sealed class AudioRecorder : IAudioRecorder, IDisposable
 {
@@ -14,7 +15,7 @@ public sealed class AudioRecorder : IAudioRecorder, IDisposable
 
     public AudioRecorder()
     {
-        _mediaRecorder = new MediaRecorder(Application.Context);
+        _mediaRecorder = new MediaRecorder(AndroidApp.Application.Context);
         _state = MediaRecorderState.Initial;
     }
 
